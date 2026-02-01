@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Force dark mode to rely on the .dark class instead of system preference */
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+}
+
+/* Hide spin buttons for number inputs */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
