@@ -1,73 +1,88 @@
-# React + TypeScript + Vite
+# Linear Equation Solver
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive React application for solving systems of linear equations using various numerical methods. This project demonstrates the implementation of complex mathematical algorithms within a modern web interface.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Store & Manage Matrices**: Dynamic input for matrices of size `n x n`.
+- **Multiple Algorithms**:
+  - **Gauss Elimination**: Reduces matrix to row echelon form.
+  - **Gauss-Jordan**: Reduces matrix to reduced row echelon form.
+  - **LU Factorization**: Decomposes matrix into Lower and Upper triangular matrices.
+  - **Matrix Inversion**: Calculates the inverse matrix and solves `x = A⁻¹b`.
+- **Responsive UI**: Built with Tailwind CSS, featuring dark mode support.
 
-## React Compiler
+## 🛠 Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React (TypeScript)
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📂 Code Explanation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. Core Logic: `src/utils/solver.ts`
+This file contains the "brain" of the application. It exports purely mathematical functions that operate on matrices (`number[][]`) and vectors (`number[]`).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **`solveGaussElimination(matrix, vector)`**
+  - Performs **Forward Elimination** with Partial Pivoting (swapping rows to place the largest value on the diagonal).
+  - Checks for singular matrices (where diagonal element is near zero).
+  - Uses **Back Substitution** to find the variable values from the last equation upwards.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **`solveGaussJordan(matrix, vector)`**
+  - Extends Gauss Elimination.
+  - Normalizes each pivot row (dividing by the pivot value).
+  - Eliminates values **both below and above** the pivot.
+  - The resulting vector is the direct solution.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **`solveLUFactorization(matrix, vector)`**
+  - Implements the **Doolittle Algorithm**.
+  - Decomposes Matrix $A$ into $L$ (Lower Triangular) and $U$ (Upper Triangular).
+  - Solves the system in two steps:
+    1. $Ly = b$ (Forward Substitution)
+    2. $Ux = y$ (Backward Substitution)
+    - Returns `{ x, L, U }` so the UI can display the decomposition.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **`findInverse(matrix)`**
+  - Uses Gauss-Jordan on an augmented matrix $[A | I]$.
+  - Transforms $A$ into Identity $I$, which simultaneously transforms $I$ into $A^{-1}$.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 2. Main Interface: `src/App.tsx`
+The central component that orchestrates the application state and UI.
+
+- **State Management**:
+  - `n`: Dimension of the matrix (e.g., 3).
+  - `matrixA`, `matrixB`: Store user input.
+  - `method`: Tracks the currently selected algorithm.
+  - `resultX`, `resultLU`, `resultInverse`: Store calculation results to prevent re-calculation on render.
+  
+- **`handleSolve()`**:
+  - Validates inputs.
+  - Calls the appropriate function from `solver.ts`.
+  - Handles errors (e.g., "Singular Matrix") using a `try-catch` block.
+  - For the **Inverse** method, it manually calculates $x = A^{-1} \cdot b$ to provide the solution vector alongside the inverse matrix.
+
+### 3. Components (`src/components/`)
+- **`MatrixInput.tsx`**: Dynamically generates a grid of input fields based on the dimension `n`.
+- **`ResultDisplay.tsx`**: Visualizes the results, formatting the matrices and vectors for easy reading.
+
+---
+
+## 📦 How to Run
+
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for Production**
+   ```bash
+   npm run build
+   ```
