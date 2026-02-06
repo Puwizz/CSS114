@@ -5,7 +5,7 @@ import {
   solveLUFactorization,
   findInverse
 } from './utils/solver';
-import type { Matrix, Vector } from './utils/solver';
+import type { Matrix, Vector, SolverResult, SolutionStatus } from './utils/solver';
 import MatrixInput from './components/MatrixInput';
 import ResultDisplay from './components/ResultDisplay';
 import { Calculator, Grid3X3, Sigma, RefreshCcw, Moon, Sun } from 'lucide-react';
@@ -24,6 +24,7 @@ function App() {
   const [resultX, setResultX] = useState<Vector | null>(null);
   const [resultLU, setResultLU] = useState<{ L: Matrix; U: Matrix } | null>(null);
   const [resultInverse, setResultInverse] = useState<Matrix | null>(null);
+  const [solutionStatus, setSolutionStatus] = useState<SolutionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -52,33 +53,41 @@ function App() {
     setResultX(null);
     setResultLU(null);
     setResultInverse(null);
+    setSolutionStatus(null);
 
     try {
-      let x: Vector | null = null;
+      let res: SolverResult;
 
       switch (method) {
         case 'gauss':
-          x = solveGaussElimination(matrixA, matrixB);
-          if (!x) throw new Error("Singular Matrix: No unique solution.");
-          setResultX(x);
+          res = solveGaussElimination(matrixA, matrixB);
+          setSolutionStatus(res.status);
+          if (res.status === 'unique' && res.solution) {
+            setResultX(res.solution);
+          }
           break;
         case 'gauss-jordan':
-          x = solveGaussJordan(matrixA, matrixB);
-          if (!x) throw new Error("Singular Matrix: No unique solution.");
-          setResultX(x);
+          res = solveGaussJordan(matrixA, matrixB);
+          setSolutionStatus(res.status);
+          if (res.status === 'unique' && res.solution) {
+            setResultX(res.solution);
+          }
           break;
         case 'lu':
-          const luResult = solveLUFactorization(matrixA, matrixB);
-          if (!luResult) throw new Error("Singular Matrix or LU decomposition failed.");
-          setResultX(luResult.x);
-          setResultLU({ L: luResult.L, U: luResult.U });
+          res = solveLUFactorization(matrixA, matrixB);
+          setSolutionStatus(res.status);
+          if (res.status === 'unique' && res.solution) {
+            setResultX(res.solution);
+            if (res.L && res.U) {
+              setResultLU({ L: res.L, U: res.U });
+            }
+          }
           break;
         case 'inverse':
           const inv = findInverse(matrixA);
           if (!inv) throw new Error("Matrix is not invertible.");
           setResultInverse(inv);
           // Also solve for x using inverse: x = A^-1 * b
-          // Calculate A^-1 * b
           const xInv = Array(n).fill(0);
           for (let i = 0; i < n; i++) {
             for (let j = 0; j < n; j++) {
@@ -86,6 +95,7 @@ function App() {
             }
           }
           setResultX(xInv);
+          setSolutionStatus('unique');
           break;
       }
     } catch (err: any) {
@@ -158,6 +168,7 @@ function App() {
               lu={resultLU}
               inverse={resultInverse}
               error={error}
+              status={solutionStatus}
             />
           </div>
         </div>
