@@ -134,6 +134,7 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
                                     type="number"
                                     value={val}
                                     onChange={(e) => handleAChange(i, j, e.target.value)}
+                                    onFocus={(e) => e.target.select()}
                                     className="w-full h-12 text-center text-lg font-medium border-0 ring-1 ring-slate-200 dark:ring-slate-600 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none transition-all duration-200 hover:ring-indigo-300 dark:hover:ring-indigo-500/50"
                                 />
                             ))
@@ -151,6 +152,7 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
                                 type="number"
                                 value={val}
                                 onChange={(e) => handleBChange(i, e.target.value)}
+                                onFocus={(e) => e.target.select()}
                                 className="w-20 h-12 text-center text-lg font-medium border-0 ring-1 ring-amber-200 dark:ring-amber-800/50 rounded-xl shadow-sm focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-400 bg-amber-50 dark:bg-amber-950/20 text-slate-800 dark:text-amber-100 placeholder:text-amber-300 focus:outline-none transition-all duration-200 hover:ring-amber-300 dark:hover:ring-amber-700"
                             />
                         ))}
