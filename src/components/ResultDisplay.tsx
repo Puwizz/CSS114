@@ -24,7 +24,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ x, lu, inverse, error, st
         <div className="mt-8 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-bottom-4 duration-500 transition-colors">
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6 text-center border-b dark:border-slate-700 pb-4">Results</h2>
 
-            {/* Status Messages */}
+
             {status === 'none' && (
                 <div className="p-4 mb-6 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-lg text-center font-bold border border-red-200 dark:border-red-800">
                     No Solution
@@ -36,7 +36,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ x, lu, inverse, error, st
                 </div>
             )}
 
-            {/* Solution Vector X */}
             {status === 'unique' && x && (
                 <div className="mb-8">
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-3">Solution Vector (x)</h3>
@@ -53,7 +52,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ x, lu, inverse, error, st
                 </div>
             )}
 
-            {/* Inverse Matrix Display */}
             {inverse && (
                 <div className="mb-8 overflow-x-auto">
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-3">Inverse Matrix (A⁻¹)</h3>
@@ -71,7 +69,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ x, lu, inverse, error, st
                 </div>
             )}
 
-            {/* LU Factorization Display */}
             {lu && (
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="overflow-x-auto">

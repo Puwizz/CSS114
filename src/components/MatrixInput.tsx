@@ -21,7 +21,6 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
     setMatrixB,
     onSolve,
 }) => {
-    // Initialize matrix when n changes (if size doesn't match)
     useEffect(() => {
         if (matrixA.length !== n) {
             const newA = Array.from({ length: n }, () => Array(n).fill(0));
@@ -77,7 +76,7 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
             [-1, 1, -1],
             [0, -2, 3],
         ]);
-        setMatrixB([5, 3, -1]); // Example 4
+        setMatrixB([5, 3, -1]);
     };
 
     return (
@@ -120,7 +119,6 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-start overflow-auto">
-                {/* Matrix A Input */}
                 <div>
                     <h3 className="text-center mb-2 font-semibold text-slate-700 dark:text-slate-300">Matrix A</h3>
                     <div
@@ -142,7 +140,6 @@ const MatrixInput: React.FC<MatrixInputProps> = ({
                     </div>
                 </div>
 
-                {/* Vector B Input */}
                 <div className="flex flex-col items-center">
                     <h3 className="text-center mb-2 font-semibold text-slate-700 dark:text-slate-300">Vector B</h3>
                     <div className="flex flex-col gap-2">
