@@ -128,12 +128,17 @@ export const solveGaussJordan = (matrix: Matrix, vector: Vector): SolverResult =
     return { status: 'unique', solution: b };
 };
 
-export const solveLUFactorization = (matrix: Matrix, vector: Vector): SolverResult => {
-    const n = matrix.length;
-    const L: Matrix = Array.from({ length: n }, () => Array(n).fill(0));
-    const U: Matrix = Array.from({ length: n }, () => Array(n).fill(0));
 
+export const solveLUFactorization = (matrix: Matrix, vector: Vector): SolverResult => {
+    
+    const n = matrix.length; 
+    const L: Matrix = Array.from({ length: n }, () => Array(n).fill(0));  
+    const U: Matrix = Array.from({ length: n }, () => Array(n).fill(0));
+    // LU decomposition
     for (let i = 0; i < n; i++) {
+        /* U matrix : This is done by subtracting the previously calculated cumulative 
+        product of L and U from the value in the original table, where the value of L is the same as M in Gauss elimination.
+        */
         for (let k = i; k < n; k++) {
             let sum = 0;
             for (let j = 0; j < i; j++) {
@@ -141,11 +146,13 @@ export const solveLUFactorization = (matrix: Matrix, vector: Vector): SolverResu
             }
             U[i][k] = matrix[i][k] - sum;
         }
+        /*L matrix : Prepare the value of M for calculation in the matrix u.*/
 
         for (let k = i; k < n; k++) {
+            //If it's a diagonal position (e.g., row 1, column 1), always put the number 1.
             if (i === k)
                 L[i][i] = 1;
-            else {
+            else { //calculate the cumulative sum to prepare for finding the value of L at that location.
                 let sum = 0;
                 for (let j = 0; j < i; j++) {
                     sum += (L[k][j] * U[j][i]);
