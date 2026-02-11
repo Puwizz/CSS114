@@ -8,6 +8,7 @@ export interface SolverResult {
     solution?: Vector;
     L?: Matrix;
     U?: Matrix;
+    P?: Matrix;
 }
 
 const EPSILON = 1e-10;
@@ -69,7 +70,7 @@ export const solveGaussElimination = (matrix: Matrix, vector: Vector): SolverRes
 
     // Back Substitution
     // Solve for unknown variables x starting from the last row (n-1) up to the first (0).
-    // Formula: x_i = (b_i - sum(A_ij * x_j for j > i)) / A_ii
+
     const x = new Array(n).fill(0);
     for (let i = n - 1; i >= 0; i--) {
         let sum = 0;
@@ -153,64 +154,82 @@ export const solveGaussJordan = (matrix: Matrix, vector: Vector): SolverResult =
 
 
 /**
- * Solves a system of linear equations using LU Factorization (Doolittle's Algorithm).
+ * Solves a system of linear equations using LU Factorization .
  * Decomposes A into Lower (L) and Upper (U) triangular matrices, then solves Ly = b and Ux = y.
  */
+/**
+ * Solves a system of linear equations using LU Factorization with Partial Pivoting.
+ * Decomposes P * A = L * U, then solves L * y = P * b and U * x = y.
+ */
 export const solveLUFactorization = (matrix: Matrix, vector: Vector): SolverResult => {
-
     const n = matrix.length;
-    const L: Matrix = Array.from({ length: n }, () => Array(n).fill(0));
-    const U: Matrix = Array.from({ length: n }, () => Array(n).fill(0));
-    // LU decomposition
-    for (let i = 0; i < n; i++) {
-        // Calculate Upper Triangular Matrix (U) using Doolittle's Algorithm.
-        // U_ik = A_ik - sum(L_ij * U_jk) for j < i
-        for (let k = i; k < n; k++) {
-            let sum = 0;
-            for (let j = 0; j < i; j++) {
-                sum += (L[i][j] * U[j][k]);
+    // Create a working copy of the matrix for U
+    const U = matrix.map(row => [...row]);
+    // Initialize L as identity matrix
+    const L: Matrix = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+    // Initialize P as identity matrix (permutation matrix)
+    const P: Matrix = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+    // Working copy of vector P*b (will be permuted)
+    const Pb = [...vector];
+
+    for (let k = 0; k < n; k++) {
+        // Partial Pivoting: Find the row with the largest absolute value in the current column
+        let pivotRow = k;
+        for (let i = k + 1; i < n; i++) {
+            if (Math.abs(U[i][k]) > Math.abs(U[pivotRow][k])) {
+                pivotRow = i;
             }
-            U[i][k] = matrix[i][k] - sum;
         }
 
-        // Calculate Lower Triangular Matrix (L)
-        // L_ki = (A_ki - sum(L_kj * U_ji)) / U_ii for j < i
-        // Diagonal elements L_ii are set to 1.
-        for (let k = i; k < n; k++) {
-            //If it's a diagonal position (e.g., row 1, column 1), always put the number 1.
-            if (i === k)
-                L[i][i] = 1;
-            else { //calculate the cumulative sum to prepare for finding the value of L at that location.
-                let sum = 0;
-                for (let j = 0; j < i; j++) {
-                    sum += (L[k][j] * U[j][i]);
-                }
-                if (Math.abs(U[i][i]) < EPSILON) {
-                    return solveGaussElimination(matrix, vector);
-                }
-                L[k][i] = (matrix[k][i] - sum) / U[i][i];
+        // Swap rows if necessary
+        if (pivotRow !== k) {
+            // Swap rows in U
+            [U[k], U[pivotRow]] = [U[pivotRow], U[k]];
+            // Swap rows in P
+            [P[k], P[pivotRow]] = [P[pivotRow], P[k]];
+            // Swap rows in Pb (vector)
+            [Pb[k], Pb[pivotRow]] = [Pb[pivotRow], Pb[k]];
+            // Swap rows in L (only for columns 0 to k-1)
+            for (let j = 0; j < k; j++) {
+                const temp = L[k][j];
+                L[k][j] = L[pivotRow][j];
+                L[pivotRow][j] = temp;
+            }
+        }
+
+        if (Math.abs(U[k][k]) < EPSILON) {
+            // Singular or near-singular, fallback or error logic. 
+            // In typical LU, a zero pivot means singular matrix.
+            // Let's defer to the existing Gauss elimination fallback if meaningful specific status is needed,
+            // or just continue if the user expects "infinite" or "none" handling from the Gauss function.
+            // However, this task specifically asked for LU pivoting.
+            // If we cant pivot, then the matrix is singular.
+            return solveGaussElimination(matrix, vector);
+        }
+
+        // Elimination
+        for (let i = k + 1; i < n; i++) {
+            const factor = U[i][k] / U[k][k];
+            L[i][k] = factor;
+            // Update row U[i]
+            U[i][k] = 0; // The element below pivot becomes 0
+            for (let j = k + 1; j < n; j++) {
+                U[i][j] -= factor * U[k][j];
             }
         }
     }
 
-    if (Math.abs(U[n - 1][n - 1]) < EPSILON) {
-        return solveGaussElimination(matrix, vector);
-    }
-
-    // Forward Substitution: Solve Ly = b for y
-    // Formula: y_i = (b_i - sum(L_ij * y_j for j < i)) / L_ii
-    // Since L_ii is 1, the division is trivial.
+    // Forward Substitution: Solve L * y = P * b
     const y = new Array(n).fill(0);
     for (let i = 0; i < n; i++) {
         let sum = 0;
         for (let j = 0; j < i; j++) {
             sum += L[i][j] * y[j];
         }
-        y[i] = (vector[i] - sum) / L[i][i];
+        y[i] = (Pb[i] - sum) / L[i][i];
     }
 
-    // Backward Substitution: Solve Ux = y for x
-    // Formula: x_i = (y_i - sum(U_ij * x_j for j > i)) / U_ii
+    // Backward Substitution: Solve U * x = y
     const x = new Array(n).fill(0);
     for (let i = n - 1; i >= 0; i--) {
         let sum = 0;
@@ -223,7 +242,7 @@ export const solveLUFactorization = (matrix: Matrix, vector: Vector): SolverResu
         x[i] = (y[i] - sum) / U[i][i];
     }
 
-    return { status: 'unique', solution: x, L, U };
+    return { status: 'unique', solution: x, L, U, P };
 };
 
 /**
