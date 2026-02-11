@@ -87,15 +87,9 @@ function App() {
           const inv = findInverse(matrixA);
           if (!inv) throw new Error("Matrix is not invertible.");
           setResultInverse(inv);
-          // Also solve for x using inverse: x = A^-1 * b
-          const xInv = Array(n).fill(0);
-          for (let i = 0; i < n; i++) {
-            for (let j = 0; j < n; j++) {
-              xInv[i] += inv[i][j] * matrixB[j];
-            }
-          }
-          setResultX(xInv);
-          setSolutionStatus('unique');
+
+          // No longer solving for x here as requested.
+          // setResultX is cleared at the start of handleSolve, so x remains null.
           break;
       }
     } catch (err: any) {
